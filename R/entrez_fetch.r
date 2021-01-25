@@ -32,6 +32,7 @@
 #'@param retmode character, mode in which to receive data, defaults to an empty
 #'string (corresponding to the default mode for rettype).
 #'@param config vector, httr configuration options passed to httr::GET
+#'@template retry
 #'@param \dots character, additional terms to add to the request, see NCBI
 #'documentation linked to in references for a complete list
 #'@references \url{https://www.ncbi.nlm.nih.gov/books/NBK25499/#_chapter4_EFetch_} 
@@ -53,7 +54,7 @@
 #'}
 
 entrez_fetch <- function(db, id=NULL, web_history=NULL, rettype, retmode="", parsed=FALSE,
-                         config=NULL, ...){
+                         config=NULL, retry=entrez_retry_options(), ...){
     identifiers <- id_or_webenv()
     if(parsed){
         if(!is_xml_record(rettype, retmode)){            
@@ -61,7 +62,8 @@ entrez_fetch <- function(db, id=NULL, web_history=NULL, rettype, retmode="", par
           stop(msg)
         }
     }
-    args <- c(list("efetch", db=db, rettype=rettype, config=config, retmode=retmode, ...), identifiers) 
+    args <- c(list("efetch", db=db, rettype=rettype, config=config, retmode=retmode,
+        retry=retry, ...), identifiers) 
     records <- do.call(make_entrez_query, args) 
     if(parsed){
         #At the moment, this is just a long-winded way to call

@@ -36,6 +36,7 @@
 #'@param \dots character Additional terms to add to the request, see NCBI
 #'documentation linked to in references for a complete list
 #'@param config vector configuration options passed to \code{httr::GET}
+#'@template retry
 #'@param version either 1.0 or 2.0 see above for description
 #'@param retmode either "xml" or "json". By default, xml will be used for
 #'version 1.0 records, json for version 2.0.
@@ -64,7 +65,8 @@
 #'  extract_from_esummary(cv, "gene_sort") 
 #' }
 entrez_summary <- function(db, id=NULL, web_history=NULL, 
-                           version=c("2.0", "1.0"), always_return_list = FALSE, retmode=NULL, config=NULL, ...){
+                           version=c("2.0", "1.0"), always_return_list = FALSE, retmode=NULL, config=NULL,
+                           retry=entrez_retry_options(),...){
     identifiers <- id_or_webenv()
     v <-match.arg(version) 
     if( is.null(retmode)) {
@@ -73,7 +75,7 @@ entrez_summary <- function(db, id=NULL, web_history=NULL,
     if (retmode == "json" & v == "1.0"){
         stop("Version 1.0 records are only available as xml, not json")
     }
-    args <- c(list("esummary", db=db, config=config, retmode=retmode, version=v, ...), identifiers)
+    args <- c(list("esummary", db=db, config=config, retmode=retmode, version=v, retry=retry,...), identifiers)
     response  <- do.call(make_entrez_query, args)
     whole_record <- parse_response(response, retmode)
     parse_esummary(whole_record, v, always_return_list)

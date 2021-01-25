@@ -10,6 +10,7 @@
 #'@param retmode character, file format to retrieve. Defaults to xml, as 
 #' per the API documentation, though note the API only returns plain text
 #'@param config vector configuration options passed to httr::GET  
+#'@template retry
 #'@return A character vector containing PMIDs
 #'@seealso \code{\link[httr]{config}} for available configs
 #'@export
@@ -19,7 +20,8 @@
 #'               "science|1987|235|182|palmenberg ac|test2|")
 #' entrez_citmatch(ex_cites)
 #'}
-entrez_citmatch <- function(bdata, db="pubmed", retmode="xml", config=NULL){
+entrez_citmatch <- function(bdata, db="pubmed", retmode="xml", config=NULL,
+    retry=entrez_retry_options()){
     if(length(bdata) > 1){
         bdata <- paste0(bdata, collapse="\r")
     }
@@ -29,7 +31,8 @@ entrez_citmatch <- function(bdata, db="pubmed", retmode="xml", config=NULL){
                                  db=db, 
                                  retmode=retmode,
                                  interface=".cgi?",
-                                 config=config)
+                                 config=config,
+                                 retry=retry)
     results <- strsplit(strsplit(request, "\n")[[1]], "\\|")
     sapply(results, extract_pmid)
 }

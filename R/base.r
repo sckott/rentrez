@@ -1,3 +1,5 @@
+senv <- new.env()
+
 #What's going on under the hood. As far as possible we are following the best
 #practices for API packages suggested by hadly/httr:
 #
@@ -28,7 +30,9 @@ entrez_tool <- function() 'rentrez'
 # arguments that would have been passed to GET or POST (useful for debugging 
 # and used in the test suite).
 
-make_entrez_query <- function(util, config, interface=".fcgi?", by_id=FALSE, debug_mode=FALSE, ...){
+make_entrez_query <- function(util, config, interface=".fcgi?", by_id=FALSE,
+    debug_mode=FALSE, http_post=FALSE, retry = NULL, ...){
+
     uri <- paste0("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/", util, interface)
     args <- list(..., email=entrez_email(), tool=entrez_tool())
     if(!("api_key" %in% names(args))){ #no api key set, try to use the sytem var
@@ -62,14 +66,26 @@ make_entrez_query <- function(util, config, interface=".fcgi?", by_id=FALSE, deb
         if ("http_version" %in% names(config$options)) {
             warning("Over-writing httr config options for 'http_version', as NCBI servers require v1.1")
         }
+        if (!inherits(config, "request"))
+            config <- httr::config()
         config$options$http_version <- 2        
     }
-
     
-    if(length(args$id) > 200){ 
-        response <- httr::POST(uri, body=args, config= config)
-    } else {
-        response <- httr::GET(uri, query=args, config= config) 
+    senv$uri <- uri
+    senv$config <- config
+    senv$retry <- retry
+    stopifnot(inherits(http_post, "logical"))
+    if (length(args$id) > 200 || http_post) {
+        response <- httr::RETRY("POST", uri, body = args, config = config,
+            times = retry$times, pause_base = retry$pause_base,
+            pause_cap = retry$pause_cap, pause_min = retry$pause_min,
+            terminate_on = retry$terminate_on, terminate_on_success = retry$terminate_on_success)
+    }
+    else {
+        response <- httr::RETRY("GET", uri, query = args, config = config,
+            times = retry$times, pause_base = retry$pause_base,
+            pause_cap = retry$pause_cap, pause_min = retry$pause_min,
+            terminate_on = retry$terminate_on, terminate_on_success = retry$terminate_on_success)
     }
     entrez_check(response)
     Sys.sleep(sleep_time(args))
@@ -82,9 +98,9 @@ make_entrez_query <- function(util, config, interface=".fcgi?", by_id=FALSE, deb
 # the rate-limit when using 1/10 and 1/3 as times
 sleep_time <- function(argument_list){
     if("api_key" %in% names(argument_list)){
-        return(0.13)
+        return(0.1)
     }
-    0.35
+    1/3
 }
 ##
 # Check for that we have either the ID or the web-history functions are 
@@ -121,11 +137,6 @@ entrez_check  <- function(req){
       stop("HTTP failure: 502, bad gateway. This error code is often returned when trying to download many records in a single request.  Try using web history as described in the rentrez tutorial")
   }
   message <- httr::content(req, as="text", encoding="UTF-8")
-  if (req$status_code == 429){
-     #too many requests. First sleep to precent us racking up more
-     Sys.sleep(0.3)
-     stop(paste("HTTP failure: 429, too many requests. Functions that contact the NCBI should not be called in parallel. If you are using a shared IP, consider registerring for an API key as described in the rate-limiting section of rentrez tutorial. NCBI message:\n", message)) 
-  }
   stop("HTTP failure: ", req$status_code, "\n", message, call. = FALSE)
 }
 
@@ -179,4 +190,28 @@ add_class <- function(x, new_class){
 .last <- function(s){
     len <- nchar(s)
     substr(s, len-1, len)
+}
+
+#' entrez retry options
+#' @export
+#' @param pause_base,pause_cap,pause_min basis, maximum, and minimum for
+#' calculating wait time for retry.
+#' @param times the maximum number of times to retry.
+#' @param terminate_on a vector of HTTP status codes.
+#' @param terminate_on_success If `TRUE`, the default, this will
+#' automatically terminate when the request is successful, regardless of the
+#' value of `terminate_on`
+#' @details see [httr::RETRY] for more detailed explanation of these
+#' parameters
+#' @return a named list with the parameters given to this function
+entrez_retry_options <- function(pause_base = 1, pause_cap = 60, pause_min = 1,
+  times = 3, terminate_on = NULL, terminate_on_success = TRUE) {
+  list(
+    pause_base = pause_base,
+    pause_cap = pause_cap,
+    pause_min = pause_min,
+    times = times,
+    terminate_on = terminate_on,
+    terminate_on_success = terminate_on_success
+  )
 }

@@ -5,6 +5,7 @@
 #'@export
 #'@param term the search term to use
 #'@param config vector configuration options passed to httr::GET  
+#'@template retry
 #'@param ... additional arguments to add to the query
 #'@seealso \code{\link[httr]{config}} for available configs 
 #'@return a named vector with counts for each a database
@@ -14,16 +15,17 @@
 #' NCBI_data_on_best_butterflies_ever <- entrez_global_query(term="Heliconius")
 #'}
 
-entrez_global_query <- function(term, config=NULL, ...){
+entrez_global_query <- function(term, config=NULL, retry=entrez_retry_options(), ...){
     response <- make_entrez_query("egquery", 
                                     term=gsub(" ", "+", term), 
                                     config=config,
+                                    retry=retry,
                                     ...)
     record <- xmlTreeParse(response, useInternalNodes=TRUE)
     db_names <- xpathSApply(record, "//ResultItem/DbName", xmlValue)
     get_Ids <- function(dbname){
         path <-  paste("//ResultItem/DbName[text()='", dbname, "']/../Count", sep="")
-        res <- as.numeric(xpathSApply(record, path, xmlValue))
+        res <- suppressWarnings(as.numeric(xpathSApply(record, path, xmlValue)))
     }
     #NCBI limits requests to three per second
     res <- structure(sapply(db_names, get_Ids), names=db_names)

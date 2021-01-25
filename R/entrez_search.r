@@ -28,11 +28,13 @@
 #'vignette and reference given below.
 #'@param use_history logical. If TRUE return a web_history object for use in 
 #' later calls to the NCBI
+#'@param http_post logical. If TRUE, use POST. If FALSE, use GET
 #'@param retmode character, one of json (default) or xml. This will make no
 #' difference in most cases.
 #'@param \dots character, additional terms to add to the request, see NCBI
 #'documentation linked to in references for a complete list
 #'@param config vector configuration options passed to httr::GET  
+#'@template retry
 #'@seealso \code{\link[httr]{config}} for available httr configurations 
 #'@seealso \code{\link{entrez_db_searchable}} to get a set of search fields that
 #' can be used in \code{term} for any database
@@ -66,14 +68,17 @@
 #' entrez_search(db="taxonomy", term="Drosophila & Genus[RANK]")
 #'}
 
-entrez_search <- function(db, term, config=NULL, retmode="xml", use_history=FALSE, ... ){
+entrez_search <- function(db, term, config=NULL, retmode="xml", use_history=FALSE,
+  http_post=FALSE, retry=entrez_retry_options(), ... ){
     usehistory <- if(use_history) "y" else "n"
     response <- make_entrez_query("esearch", 
+                                  http_post=http_post,
                                   db=db, 
                                   term=term, 
                                   config=config,
                                   retmode=retmode, 
                                   usehistory=usehistory,
+                                  retry=retry,
                                   ...)
     parsed <- parse_response(response, retmode)
     parse_esearch(parsed, history=use_history)

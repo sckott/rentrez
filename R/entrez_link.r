@@ -35,6 +35,7 @@
 #'@param \dots character Additional terms to add to the request, see NCBI
 #'documentation linked to in references for a complete list
 #'@param config vector configuration options passed to httr::GET  
+#'@template retry
 #'@seealso \code{\link[httr]{config}} for available configs 
 #'@seealso  \code{entrez_db_links}
 #'@return An elink object containing the data defined by the \code{cmd} argument
@@ -56,9 +57,9 @@
 #'
 
 
-entrez_link <- function(dbfrom, web_history=NULL, id=NULL, db=NULL, cmd='neighbor', by_id=FALSE, config=NULL, ...){
+entrez_link <- function(dbfrom, web_history=NULL, id=NULL, db=NULL, cmd='neighbor', by_id=FALSE, config=NULL, retry=entrez_retry_options(), ...){
     identifiers <- id_or_webenv()
-    args <- c(list("elink", db=db, dbfrom=dbfrom, cmd=cmd, config=config, by_id=by_id, ...), identifiers)
+    args <- c(list("elink", db=db, dbfrom=dbfrom, cmd=cmd, config=config, by_id=by_id, retry=retry, ...), identifiers)
     if(by_id){
         if(is.null(id)) stop("Can't use by_id mode without ids!")
     } 

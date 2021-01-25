@@ -10,6 +10,7 @@
 #' it is exported by \code{rentrez} for the sake of completeness.
 #'@param db character database about which to retrieve information (optional)
 #'@param config config vector passed on to \code{httr::GET}
+#'@template retry
 #'@return XMLInternalDocument with information describing either all the
 #'databases available in Eutils (if db is not set) or one particular database
 #'(set by 'db')
@@ -24,8 +25,8 @@
 #'}
 #'@export
 
-entrez_info <- function(db=NULL, config=NULL){
-    req <- make_entrez_query("einfo", db=db, config=config)
+entrez_info <- function(db=NULL, config=NULL, retry=entrez_retry_options()){
+    req <- make_entrez_query("einfo", db=db, config=config, retry=retry)
     res <- parse_response(req, "xml")
     check_xml_errors(res)
     res
@@ -35,6 +36,7 @@ entrez_info <- function(db=NULL, config=NULL){
 #'
 #' Retrieves the names of  databases available through the EUtils API
 #'@param config config vector passed to \code{httr::GET}
+#'@template retry
 #'@family einfo
 #'@return character vector listing available dbs
 #'@export
@@ -42,8 +44,8 @@ entrez_info <- function(db=NULL, config=NULL){
 #'\dontrun{
 #' entrez_dbs()
 #'}
-entrez_dbs <- function(config=NULL){
-    xpathSApply(entrez_info(config), "//DbName", xmlValue)
+entrez_dbs <- function(config=NULL, retry=entrez_retry_options()){
+    xpathSApply(entrez_info(config, retry=retry), "//DbName", xmlValue)
 }
 
 
@@ -51,6 +53,7 @@ entrez_dbs <- function(config=NULL){
 #'
 #'@param config config vector passed to \code{httr::GET}
 #'@param db character, name of database to summaries
+#'@template retry
 #'@return Character vector with the following data
 #'@return DbName Name of database
 #'@return Description Brief description of the database
@@ -65,8 +68,8 @@ entrez_dbs <- function(config=NULL){
 #'}
 #'@export
 
-entrez_db_summary <- function(db, config=NULL){
-    rec <- entrez_info(db, config)
+entrez_db_summary <- function(db, config=NULL, retry=entrez_retry_options()){
+    rec <- entrez_info(db, config, retry=retry)
     unparsed <- xpathApply( rec, "//DbInfo/*[not(self::LinkList or self::FieldList)]")
     res <- sapply(unparsed, xmlValue)
     names(res) <- sapply(unparsed, xmlName)
@@ -83,6 +86,7 @@ entrez_db_summary <- function(db, config=NULL){
 #'
 #'@param config config vector passed to \code{httr::GET}
 #'@param db character, name of database to search
+#'@template retry
 #'@return An eInfoLink object (sub-classed from list) summarizing linked-databases.
 #' Can be coerced to a data-frame with \code{as.data.frame}. Printing the object
 #' the name of each element (which is the correct name for \code{entrez_link},
@@ -101,8 +105,8 @@ entrez_db_summary <- function(db, config=NULL){
 #'as.data.frame(sra_links)
 #'}
 #'@export
-entrez_db_links <- function(db, config=NULL){
-    rec <- entrez_info(db, config)
+entrez_db_links <- function(db, config=NULL, retry=entrez_retry_options()){
+    rec <- entrez_info(db, config, retry=retry)
     unparsed <- xpathApply(rec, "//Link", xmlChildren)
     res <- lapply(unparsed, lapply, xmlValue)
     res <- lapply(res, add_class, new_class='eInfoEntry')
@@ -120,6 +124,7 @@ entrez_db_links <- function(db, config=NULL){
 #' can be used as part of the \code{term} argument to \code{\link{entrez_search}}
 #'@param config config vector passed to \code{httr::GET}
 #'@param db character, name of database to get search field from
+#'@template retry
 #'@return An eInfoSearch object (subclassed from list) summarizing linked-databases. 
 #' Can be coerced to a data-frame with \code{as.data.frame}. Printing the object
 #' shows only the names of each available search field. 
@@ -137,8 +142,8 @@ entrez_db_links <- function(db, config=NULL){
 #'}
 #'@export
 
-entrez_db_searchable <- function(db, config=NULL){
-    rec <- entrez_info(db, config)
+entrez_db_searchable <- function(db, config=NULL, retry=entrez_retry_options()){
+    rec <- entrez_info(db, config, retry=retry)
     unparsed <- xpathApply(rec, 
                            "/eInfoResult/DbInfo/FieldList/Field",
                            xmlChildren)

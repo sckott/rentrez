@@ -10,6 +10,7 @@
 #'@param \dots character Additional terms to add to the request, see NCBI
 #'documentation linked to in references for a complete list
 #'@param config vector of configuration options passed to httr::GET  
+#'@template retry
 #'@references \url{https://www.ncbi.nlm.nih.gov/books/NBK25499/#_chapter4_EPost_} 
 #'@seealso \code{\link[httr]{config}} for available httr configurations
 #'@importFrom XML xmlTreeParse
@@ -24,8 +25,8 @@
 #'                        retstart=10, retmax=10)
 #'}
 
-entrez_post <- function(db, id=NULL, web_history=NULL, config=NULL, ...){
-    args  <-list("epost", db=db, config=config, id=id, web_history=web_history, ...)
+entrez_post <- function(db, id=NULL, web_history=NULL, config=NULL, retry=entrez_retry_options(), ...){
+    args  <-list("epost", db=db, config=config, id=id, web_history=web_history, retry=retry, ...)
     if(!is.null(web_history)){
         args <- c(args, WebEnv=web_history$WebEnv, query_key = web_history$QueryKey)
         args$web_history <- NULL
