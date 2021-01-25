@@ -12,6 +12,7 @@ entrez_summary(
   always_return_list = FALSE,
   retmode = NULL,
   config = NULL,
+  retry = entrez_retry_options(),
   ...
 )
 }
@@ -33,6 +34,11 @@ when only one ID is provided (see description for a note about this option)}
 version 1.0 records, json for version 2.0.}
 
 \item{config}{vector configuration options passed to \code{httr::GET}}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 
 \item{\dots}{character Additional terms to add to the request, see NCBI
 documentation linked to in references for a complete list}

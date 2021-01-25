@@ -12,6 +12,7 @@ entrez_fetch(
   retmode = "",
   parsed = FALSE,
   config = NULL,
+  retry = entrez_retry_options(),
   ...
 )
 }
@@ -34,6 +35,11 @@ file. Only works with xml records (including those with rettypes other than
 "xml") at present}
 
 \item{config}{vector, httr configuration options passed to httr::GET}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 
 \item{\dots}{character, additional terms to add to the request, see NCBI
 documentation linked to in references for a complete list}

@@ -4,7 +4,13 @@
 \alias{entrez_citmatch}
 \title{Fetch pubmed ids matching specially formatted citation strings}
 \usage{
-entrez_citmatch(bdata, db = "pubmed", retmode = "xml", config = NULL)
+entrez_citmatch(
+  bdata,
+  db = "pubmed",
+  retmode = "xml",
+  config = NULL,
+  retry = entrez_retry_options()
+)
 }
 \arguments{
 \item{bdata}{character, containing citation data. 
@@ -20,6 +26,11 @@ the only database currently available}
 per the API documentation, though note the API only returns plain text}
 
 \item{config}{vector configuration options passed to httr::GET}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 }
 \value{
 A character vector containing PMIDs

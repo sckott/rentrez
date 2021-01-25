@@ -4,12 +4,17 @@
 \alias{entrez_global_query}
 \title{Find the number of records that match a given term across all NCBI Entrez databases}
 \usage{
-entrez_global_query(term, config = NULL, ...)
+entrez_global_query(term, config = NULL, retry = entrez_retry_options(), ...)
 }
 \arguments{
 \item{term}{the search term to use}
 
 \item{config}{vector configuration options passed to httr::GET}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 
 \item{...}{additional arguments to add to the query}
 }

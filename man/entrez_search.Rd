@@ -10,6 +10,8 @@ entrez_search(
   config = NULL,
   retmode = "xml",
   use_history = FALSE,
+  http_post = FALSE,
+  retry = entrez_retry_options(),
   ...
 )
 }
@@ -27,6 +29,13 @@ difference in most cases.}
 
 \item{use_history}{logical. If TRUE return a web_history object for use in 
 later calls to the NCBI}
+
+\item{http_post}{logical. If TRUE, use POST. If FALSE, use GET}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 
 \item{\dots}{character, additional terms to add to the request, see NCBI
 documentation linked to in references for a complete list}

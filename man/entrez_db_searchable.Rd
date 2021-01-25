@@ -4,12 +4,17 @@
 \alias{entrez_db_searchable}
 \title{List available search fields for a given database}
 \usage{
-entrez_db_searchable(db, config = NULL)
+entrez_db_searchable(db, config = NULL, retry = entrez_retry_options())
 }
 \arguments{
 \item{db}{character, name of database to get search field from}
 
 \item{config}{config vector passed to \code{httr::GET}}
+
+\item{retry}{(list) use \code{\link{entrez_retry_options}} to make a named
+list of retry options to pass on to the HTTP request. default values are
+passed for you, but you can change them by setting the params in
+\code{\link{entrez_retry_options}} passed to this parameter}
 }
 \value{
 An eInfoSearch object (subclassed from list) summarizing linked-databases. 
